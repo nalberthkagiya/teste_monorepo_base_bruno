@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { blockForbiddenRequests, getUserFromRequest, returnInvalidDataErrors, validBody, zodErrorHandler } from "@/utils/api";
 import { AllowedRoutes } from "@/types";
-import { idSchema, patchSchema } from "@/backend/schemas";
+import { userIdSchema, patchSchema } from "@/backend/schemas";
 import { deleteUser, findUserById, updateUser } from "@/backend/services/users";
 import { toErrorMessage } from "@/utils/api/toErrorMessage";
 
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params
 
-    const validationResult = idSchema.safeParse(id);
+    const validationResult = userIdSchema.safeParse(id);
     
     if (!validationResult.success) {
       return NextResponse.json(
@@ -51,7 +51,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     const { id } = await params;
 
-    const validationResult = idSchema.safeParse(id);
+    const validationResult = userIdSchema.safeParse(id);
 
     if (!validationResult.success) {
       return NextResponse.json(
@@ -92,7 +92,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     const { id } = await params;
 
-    const idValidationResult = idSchema.safeParse(id);
+    const idValidationResult = userIdSchema.safeParse(id);
 
     if (!idValidationResult.success) {
       return NextResponse.json(

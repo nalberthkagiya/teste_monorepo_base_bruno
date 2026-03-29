@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { blockForbiddenRequests, returnInvalidDataErrors, validBody, zodErrorHandler } from "@/utils/api";
+import { blockForbiddenRequests, getUserFromRequest, returnInvalidDataErrors, validBody, zodErrorHandler } from "@/utils/api";
 import { AllowedRoutes } from "@/types";
-import { idSchema, updatePasswordSchema } from "@/backend/schemas";
+import { userIdSchema, updatePasswordSchema } from "@/backend/schemas";
 import { auth } from "@/auth";
+import type { NextRequest as _NextRequest } from "next/server";
+
+type ChangePasswordFn = (
+  args: { body: { currentPassword: string; newPassword: string } },
+  req?: _NextRequest
+) => Promise<unknown>;
 import { toErrorMessage } from "@/utils/api/toErrorMessage";
 
 const allowedRoles: AllowedRoutes = {
@@ -19,13 +25,25 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     const { id } = await params;
 
-    const idValidationResult = idSchema.safeParse(id);
+    const idValidationResult = userIdSchema.safeParse(id);
 
     if (!idValidationResult.success) {
       return NextResponse.json(
         toErrorMessage('ID Inválido'),
         { status: 400 }
       )
+    }
+
+    // garante que o request traz uma sessão e que um `USER` só possa alterar a própria senha
+    const userFromRequest = await getUserFromRequest(request);
+
+    // se for um erro (NextResponse), já retorna
+    if (userFromRequest instanceof NextResponse) {
+      return userFromRequest;
+    }
+
+    if (userFromRequest.role === 'USER' && id !== userFromRequest.id) {
+      return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
     }
 
     const { newPassword, currentPassword } = await validBody(request);
@@ -35,11 +53,25 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return returnInvalidDataErrors(validationResult.error);
     }
     
-    const user = await auth.api.changePassword({ body: {
-      newPassword: validationResult.data.newPassword,
-      currentPassword: validationResult.data.currentPassword
-    }})
-    return NextResponse.json(user);
+    try {
+      const user = await (auth.api.changePassword as unknown as ChangePasswordFn)(
+        { body: { newPassword: validationResult.data.newPassword, currentPassword: validationResult.data.currentPassword } },
+        request
+      )
+
+      return NextResponse.json(user);
+    } catch (err: unknown) {
+      // Dev debug: log and return error details so we can see why Better Auth fails
+      // (remove in production)
+       
+      console.error('changePassword error:', err);
+
+      if (err instanceof Error) {
+        return NextResponse.json({ error: { message: err.message, stack: err.stack } }, { status: 500 });
+      }
+
+      return NextResponse.json({ error: { message: 'Erro interno', details: err } }, { status: 500 });
+    }
   } catch (error) {
     if (error instanceof NextResponse) {
       return error;
