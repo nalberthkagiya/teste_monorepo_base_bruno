@@ -2,6 +2,10 @@ import { z } from "zod";
 
 export const idSchema = z.string().uuid('ID inválido');
 
+// IDs de usuário (better-auth / Mongo string ids) podem não ser UUIDs.
+// `userIdSchema` aceita qualquer string não vazia usada como id de usuário.
+export const userIdSchema = z.string().min(1, 'ID inválido');
+
 export const passwordSchema = z
     .string()
     .min(8, "Senha deve ter pelo menos 8 caracteres")
