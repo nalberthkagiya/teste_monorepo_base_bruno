@@ -7,7 +7,7 @@ import { customSession } from "better-auth/plugins";
 import { getUserRole } from "@/backend/services/auth";
 import { expo } from "@better-auth/expo";
 // import { sendEmail } from "./lib/email";
-import { ResetPasswordEmail } from "./templates/ResetPasswordEmail";
+// `ResetPasswordEmail` import removed because it's not used; uncomment and re-add when needed
  
 export const auth = betterAuth({
     baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",

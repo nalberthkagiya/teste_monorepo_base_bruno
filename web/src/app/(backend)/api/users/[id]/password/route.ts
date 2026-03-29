@@ -4,6 +4,12 @@ import { blockForbiddenRequests, getUserFromRequest, returnInvalidDataErrors, va
 import { AllowedRoutes } from "@/types";
 import { userIdSchema, updatePasswordSchema } from "@/backend/schemas";
 import { auth } from "@/auth";
+import type { NextRequest as _NextRequest } from "next/server";
+
+type ChangePasswordFn = (
+  args: { body: { currentPassword: string; newPassword: string } },
+  req?: _NextRequest
+) => Promise<unknown>;
 import { toErrorMessage } from "@/utils/api/toErrorMessage";
 
 const allowedRoles: AllowedRoutes = {
@@ -48,7 +54,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
     
     try {
-      const user = await (auth.api.changePassword as unknown as any)(
+      const user = await (auth.api.changePassword as unknown as ChangePasswordFn)(
         { body: { newPassword: validationResult.data.newPassword, currentPassword: validationResult.data.currentPassword } },
         request
       )
@@ -57,7 +63,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     } catch (err: unknown) {
       // Dev debug: log and return error details so we can see why Better Auth fails
       // (remove in production)
-      // eslint-disable-next-line no-console
+       
       console.error('changePassword error:', err);
 
       if (err instanceof Error) {

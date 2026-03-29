@@ -4,6 +4,10 @@ import { blockForbiddenRequests, getUserFromRequest, returnInvalidDataErrors, va
 import { AllowedRoutes } from "@/types";
 import { emailSchema, userIdSchema } from "@/backend/schemas";
 import { auth } from "@/auth";
+import type { NextRequest as _NextRequest } from "next/server";
+
+// typed wrapper to avoid `any` casts for better-auth calls
+type ChangeEmailFn = (args: { body: { newEmail: string } }, req?: _NextRequest) => Promise<unknown>;
 import { toErrorMessage } from "@/utils/api/toErrorMessage";
 
 const allowedRoles: AllowedRoutes = {
@@ -48,7 +52,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
     
     try {
-      const user = await (auth.api.changeEmail as unknown as any)(
+      const user = await (auth.api.changeEmail as unknown as ChangeEmailFn)(
         { body: { newEmail: validationResult.data } },
         request
       )
@@ -57,7 +61,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     } catch (err: unknown) {
       // Dev debug: log and return error details so we can see why Better Auth fails
       // (remove in production)
-      // eslint-disable-next-line no-console
+       
       console.error('changeEmail error:', err);
 
       if (err instanceof Error) {
