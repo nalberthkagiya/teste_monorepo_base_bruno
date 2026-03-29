@@ -1,0 +1,33 @@
+.container {
+  position: relative;
+  width: 16px;
+  height: 16px;
+}
+.input {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--color-gray-500);
+  border-radius: 4px;
+
+  transition: background-color .2s ease;
+}
+.input:checked {
+  border-color: transparent;
+  background-color: var(--color-pink-400);
+}
+.icon {
+  width: 14px;
+  height: 14px;
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  color: transparent;
+  transition: color .2s ease;
+}
+.input:checked + .icon {
+  color: var(--color-pink-50);
+}

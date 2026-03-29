@@ -1,0 +1,11 @@
+meta {
+  name: check session
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/session
+  body: none
+  auth: inherit
+}
